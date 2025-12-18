@@ -4,7 +4,7 @@ import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary,deleteVideoFromCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary,deleteVideoFromCloudinary, deleteImageFromCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -35,16 +35,24 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body
     // TODO: get video, upload to cloudinary, create video
-    if(!title || !description || !req.file){
+    if(!title || !description){
         throw new ApiError(403,"user Credentials are required with video");
     }
-    const cloudinaryVideo=await uploadOnCloudinary(req.file.path);
+    if(req.files.thumbnail[0].size===0 || req.files.videoFile[0].size===0){
+        throw new ApiError(403,"thmbnail and video required");
+    }
+    const cloudinaryVideo=await uploadOnCloudinary(req.files.videoFile[0].path);
+    const cloudinaryThumbnail=await uploadOnCloudinary(req.files.thumbnail[0].path);
+    if(!cloudinaryThumbnail || !cloudinaryVideo){
+        throw new ApiError("501","error uploading on cloud")
+    }
     const video=await Video.create({
         title,
         description,
         duration:String(cloudinaryVideo.duration),
         owner:req.user._id,
-        videoFile:cloudinaryVideo.url
+        videoFile:cloudinaryVideo.url,
+        thumbnail:cloudinaryThumbnail.url
     })
     res.status(201).json(new ApiResponse(201,video,"video published successfully"))
 })
@@ -58,19 +66,22 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
-    const localVideoPath=req.file.path;
+    const localThumbnailPath=req.file.path;
     const pastVideo=Video.findById(videoId);
-    const publicId = pastVideo.videoFile.split("/upload/")[1].split("/").slice(1).join("/").replace(/\.[^/.]+$/, "");
+    const publicId = pastVideo.thumbnail.split("/upload/")[1].split("/").slice(1).join("/").replace(/\.[^/.]+$/, "");
 
-    if(!localVideoPath){
-        throw new ApiError(402,"video file not recieved successfully")
+    if(!localThumbnailPath){
+        throw new ApiError(402,"Thumbnail file not recieved successfully")
     }
-    const cloudinaryVideo=await uploadOnCloudinary(localVideoPath);
+    const cloudinaryThumbnail=await uploadOnCloudinary(localThumbnailPath);
+    if(!cloudinaryThumbnail){
+        throw new ApiError("501","error uploading on cloud")
+    }
     //TODO: update video details like title, description, thumbnail
     const newVideo=await Video.findByIdAndUpdate(videoId,{
-        videoFile:cloudinaryVideo.url
+        thumbnail:cloudinaryThumbnail.url
     },{new:true});
-    deleteVideoFromCloudinary(publicId)
+    deleteImageFromCloudinary(publicId)
     res.status(200).json(new ApiResponse(200,newVideo,"video updated successfully"));
 })
 
