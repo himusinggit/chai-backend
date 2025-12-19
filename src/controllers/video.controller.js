@@ -94,7 +94,12 @@ const deleteVideo = asyncHandler(async (req, res) => {
     //TODO: delete video
     const video=await Video.findById(videoId);
     const publicId = video.videoFile.split("/upload/")[1].split("/").slice(1).join("/").replace(/\.[^/.]+$/, "");
-    const deletedVideo=deleteVideoFromCloudinary(publicId);
+    const publicIdThumbnail = video.thumbnail.split("/upload/")[1].split("/").slice(1).join("/").replace(/\.[^/.]+$/, "");
+    const deleteThumbnail=await deleteImageFromCloudinary(publicIdThumbnail);
+    const deletedVideo=await deleteVideoFromCloudinary(publicId);
+    if(!deletedVideo || !deleteThumbnail){
+        throw new ApiError("501","error deleting on cloud")
+    }
     const deleteVideoFromDB=await Video.findByIdAndDelete(videoId)
     res.status(200).json(new ApiResponse(200,deleteVideoFromDB,"video delted successfully"))
 })
