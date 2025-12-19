@@ -38,7 +38,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     const subscribers=await Subscription.aggregate([
         {
             $match:{
-                channel:channelId
+                channel:new mongoose.Types.ObjectId(channelId)
             }
         },
         {
@@ -57,9 +57,9 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
                 from:"users",
                 localField:"subscriber",
                 foreignField:"_id",
-                as:"subscriber"
-            },
-            $pipeline:{
+                as:"subscriber",
+                pipeline:[
+                    {
                 $project:{
                     userName:1,
                     fullName:1,
@@ -67,6 +67,9 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
                     avatar:1
                 }
             }
+        ]
+            }
+
         },
         {
             $project:{
@@ -80,11 +83,11 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const { subscriberId } = req.params
+    // const { subscriberId } = req.params
     const subscribedChannels=await Subscription.aggregate([
         {
             $match:{
-                subscriber:subscriberId
+                subscriber:req.user._id
             }
         },
         {
@@ -92,9 +95,10 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
                 from:"users",
                 localField:"channel",
                 foreignField:"_id",
-                as:"channel"
-            },
-            $pipeline:{
+                as:"channel",
+                pipeline:
+            [
+                {
                 $project:{
                     userName:1,
                     fullName:1,
@@ -102,6 +106,8 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
                     avatar:1
                 }
             }
+        ]
+            },
         }
     ]);
     res.status(200).json(new ApiResponse(200,subscribedChannels,"subscribed channels retrieved successfully"))
