@@ -22,10 +22,10 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
             likedBy:req.user._id
         }
     )
-    return res.status(201).json(ApiResponse(200,newVideoLikeStatus,"video liked successfully"))
+    return res.status(201).json(new ApiResponse(200,newVideoLikeStatus,"video liked successfully"))
     }
     else{
-        return res.status(200).json(ApiResponse(200,deltedLike,"video unliked successfully"))
+        return res.status(200).json(new ApiResponse(200,deltedLike,"video unliked successfully"))
     }
 })
 
@@ -47,10 +47,10 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
             likedBy:req.user._id
         }
     )
-    return res.status(201).json(ApiResponse(200,newVideoLikeStatus,"comment liked successfully"))
+    return res.status(201).json(new ApiResponse(200,newVideoLikeStatus,"comment liked successfully"))
     }
     else{
-        return res.status(200).json(ApiResponse(200,deltedLike,"comment unliked successfully"))
+        return res.status(200).json(new ApiResponse(200,deltedLike,"comment unliked successfully"))
     }
 
 })
@@ -73,10 +73,10 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
             likedBy:req.user._id
         }
     )
-    return res.status(201).json(ApiResponse(200,newVideoLikeStatus,"Tweet liked successfully"))
+    return res.status(201).json(new ApiResponse(200,newVideoLikeStatus,"Tweet liked successfully"))
     }
     else{
-        return res.status(200).json(ApiResponse(200,deltedLike,"Tweet unliked successfully"))
+        return res.status(200).json(new ApiResponse(200,deltedLike,"Tweet unliked successfully"))
     }
 }
 )

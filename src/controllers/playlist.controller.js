@@ -6,8 +6,8 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 
 const createPlaylist = asyncHandler(async (req, res) => {
-    const {name, description} = req.body
-
+    const {name, description} = req.body;
+    console.log(req.body);
     //TODO: create playlist
     const playlist=await Playlist.create(
         {
@@ -15,7 +15,14 @@ const createPlaylist = asyncHandler(async (req, res) => {
             description:description,
             owner:req.user._id
         }
-    )
+    ).populate({
+        path:"videos",
+        select:"title thumbnail owner",
+        populate:{
+            path:"owner",
+            select:"username"
+        }
+    }).populate("owner","username email");
     return res.status(200).json(new ApiResponse(200,playlist,"playlist built successfully"))
 })
 
@@ -26,7 +33,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         {
             owner:userId
         }
-    )
+    ).populate("owner","username email");
      res.status(200).json(new ApiResponse(200,playlists,"user playlists retrieved successfully"))
 })
 
@@ -34,22 +41,40 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
     //TODO: get playlist by id
     const playlist=await Playlist.findById(playlistId)
+    .populate({
+        path:"videos",
+        select:"title thumbnail owner",
+        populate:{
+            path:"owner",
+            select:"username"
+        }
+    }).populate("owner","username email");
      res.status(200).json(new ApiResponse(200,playlist,"playlist retrieved successfully"))
 })
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
+    if(!playlistId || !videoId){
+        throw new ApiError(400,"playlistId and videoId are required");
+    }
     const updatedPlaylist=await Playlist.findByIdAndUpdate(
         playlistId,
         {
-            $push:{
+            $addToSet:{
                 videos:videoId
             }
         },
         {
             new:true
         }
-    )
+    ).populate({
+        path:"videos",
+        select:"title thumbnail owner",
+        populate:{
+            path:"owner",
+            select:"username"
+        }
+    }).populate("owner","username email");
     if(!updatePlaylist){
         throw new ApiError(405,"playlist could not be updated");
     }
@@ -69,7 +94,14 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         {
             new:true
         }
-    )
+    ).populate({
+        path:"videos",
+        select:"title thumbnail owner",
+        populate:{
+            path:"owner",
+            select:"username"
+        }
+    }).populate("owner","username email");
      res.status(200).json(new ApiResponse(200,updatedPlaylist,"deleted video from playlist successfully"))
 })
 
@@ -78,7 +110,14 @@ const deletePlaylist = asyncHandler(async (req, res) => {
     // TODO: delete playlist
     const deletedPlaylist=await Playlist.findByIdAndDelete(
         playlistId
-    );
+    ).populate({
+        path:"videos",
+        select:"title thumbnail owner",
+        populate:{
+            path:"owner",
+            select:"username"
+        }
+    }).populate("owner","username email");
      res.status(200).json(new ApiResponse(200,deletedPlaylist,"deleted playlist successfully"))
 })
 
@@ -93,7 +132,14 @@ const updatePlaylist = asyncHandler(async (req, res) => {
             description:description
         },
         {new:true}
-    )
+    ).populate({
+        path:"videos",
+        select:"title thumbnail owner",
+        populate:{
+            path:"owner",
+            select:"username"
+        }
+    }).populate("owner","username email");
      res.status(200).json(new ApiResponse(200,updatedPlaylist,"updated playlist successfully"))
 })
 
