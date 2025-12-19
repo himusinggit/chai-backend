@@ -67,9 +67,9 @@ const getChannelStats = asyncHandler(async (req, res) => {
     }
     ])
     res.status(200).json(new ApiResponse(200,{
-        totalchannelVideos:channelData[0].totalVideos,
-        channelVideoViews:channelData[0].totalVideoViews,
-        channelLikes:channelLikes[0].totalChannelLikes,
+        totalchannelVideos:channelData.length>0?channelData[0]?.totalVideos:0,
+        channelVideoViews:channelData.length>0?channelData[0]?.totalVideoViews:0,
+        channelLikes:channelLikes.length>0?channelLikes[0]?.totalChannelLikes:0,
         channelSubsribers:channelSubsribers.length!=0?channelSubsribers[0].totalSubscribers:0
     },
     "channel data retrieved successfully"))
