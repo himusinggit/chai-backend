@@ -66,8 +66,10 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
+    const { title, description } = req.body;
     const localThumbnailPath=req.file.path;
-    const pastVideo=Video.findById(videoId);
+    const pastVideo=await Video.findById(videoId);
+    // console.log(videoId);
     const publicId = pastVideo.thumbnail.split("/upload/")[1].split("/").slice(1).join("/").replace(/\.[^/.]+$/, "");
 
     if(!localThumbnailPath){
@@ -79,7 +81,9 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
     //TODO: update video details like title, description, thumbnail
     const newVideo=await Video.findByIdAndUpdate(videoId,{
-        thumbnail:cloudinaryThumbnail.url
+        thumbnail:cloudinaryThumbnail.url,
+        title,
+        description
     },{new:true});
     deleteImageFromCloudinary(publicId)
     res.status(200).json(new ApiResponse(200,newVideo,"video updated successfully"));
@@ -91,7 +95,8 @@ const deleteVideo = asyncHandler(async (req, res) => {
     const video=await Video.findById(videoId);
     const publicId = video.videoFile.split("/upload/")[1].split("/").slice(1).join("/").replace(/\.[^/.]+$/, "");
     const deletedVideo=deleteVideoFromCloudinary(publicId);
-    res.status(200).json(new ApiResponse(200,deletedVideo,"video delted successfully"))
+    const deleteVideoFromDB=await Video.findByIdAndDelete(videoId)
+    res.status(200).json(new ApiResponse(200,deleteVideoFromDB,"video delted successfully"))
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
