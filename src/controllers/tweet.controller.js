@@ -19,8 +19,8 @@ const createTweet = asyncHandler(async (req, res) => {
 
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
-    const tweets=Tweet.findOne({
-        owner:req.user._id
+    const tweets=await Tweet.find({
+        owner:req.params.userId
     })
     res.status(200).json(new ApiResponse(200,tweets,"user tweets retrieved successfully"))
 })
