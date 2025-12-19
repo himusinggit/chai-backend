@@ -93,7 +93,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         },
         {
             $lookup:{
-                from:"Video",
+                from:"videos",
                 localField:"likedItem",
                 foreignField:"_id",
                 as:"likedVideo",
@@ -101,6 +101,28 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                     {
                         $match:{
                             isPublished:true
+                        }
+                    },
+                    {
+                        $lookup:{
+                            from:"users",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                        username:1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $project:{
+                            thumbnail:1,
+                            title:1,
+                            owner:1
                         }
                     }
                 ]
