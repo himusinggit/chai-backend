@@ -27,9 +27,32 @@ const getAllVideos = asyncHandler(async (req, res) => {
         },
         {
             $limit:Number(limit)
+        },
+        {
+            $lookup:{
+                from:'users',
+                localField:'owner',
+                foreignField:'_id',
+                as:'owner',
+                pipeline:[
+                    {
+                        $project:{
+                            username:1,
+                            avatar:1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields:{
+                owner:{$first:"$owner"}
+            }
         }
-    ])
-    res.status(200).json(new ApiResponse(200,videos,"videos retrieved successfully"))
+    ]);
+    const totalVideos=await Video.countDocuments();
+    const pages=Math.ceil(totalVideos/Number(limit));
+    res.status(200).json(new ApiResponse(200,{videos,totalVideos,pages,hasNextPage:page<pages,hasPreviousPage:page>1},"videos retrieved successfully"))
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
